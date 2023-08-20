@@ -146,11 +146,10 @@ function m.calculate(expr)
         local ignore = {
             integral = {1}
         }
-        return expr:gsub("([^%(]+)%((.+)%)", function(func, args)
-            print(func, args)
+        return expr:gsub("([%a_]+)(%b())", function(func, args)
             local argsTbl = {}
             local i = 0
-            for arg in args:gmatch("([^,]+)") do
+            for arg in args:sub(2, -2):gmatch("([^,]+)") do
                 i = i + 1
                 table.insert(argsTbl, (ignore[func] and table.contains(ignore[func], i)) and arg or m.calculate(arg))
             end
