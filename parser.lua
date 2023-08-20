@@ -126,12 +126,12 @@ function m.calculate(expr)
 
                 if s == op then
                     local left = getLeftOperand(expr, index, op == "!")
-                    local right = op ~= "!" and expr:sub(index + 1):match("^[%w.]+") or nil
+                    local right = op ~= "!" and expr:sub(index + 1):match("^[%w.]+") or ""
                     local result = calc(tonumber(left), s, tonumber(right))
                     if not result then
                         return
                     end
-                    expr = expr:sub(1, index - #left - 1) .. tostring(result) .. expr:sub(index + #left + (op ~= "!" and #right or 0))
+                    expr = expr:replace(left .. op .. right, result)
 
                     index = 1
                 else
