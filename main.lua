@@ -49,6 +49,8 @@ function table.contains(tbl, value)
 end
 
 local m = require("parser")
+local test = require("test")
+test()
 box:addEventListener("userInput", function(event)
     if event.phase == "submitted" then
         print("RES:", m.calculate(event.target.text))
