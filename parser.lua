@@ -102,44 +102,90 @@ function m.calculate(expr)
         return operators[operator]()
     end
 
-    local function getLeftOperand(expr, index, stopAtExclamation)
-        local left = ""
-        for i = index - 1, 1, -1 do
-            local s = expr:sub(i, i)
-            if string.find("+-*/^%" .. (stopAtExclamation and "!" or "") .. "()", s, 1, true) then
-                break
-            end
-            left = s .. left
+    local function parseNumber(expr)
+        local number, rest = expr:match("^(-?%d+%.?%d*)(.*)")
+        if number then
+            return tonumber(number), rest
         end
-        return left:match("^[%w.]+") or ""
+    end
+
+    local function parseFactorial(expr)
+        local number, rest = parseNumber(expr)
+        if not number then
+            return
+        end
+        if rest:sub(1, 1) == "!" then
+            return factorial(number), rest:sub(2)
+        else
+            return number, rest
+        end
+    end
+
+    local function parseNegate(expr)
+        if expr:sub(1, 1) == "-" then
+            local number, rest = parseFactorial(expr:sub(2))
+            if number then
+                return -number, rest
+            end
+        else
+            return parseFactorial(expr)
+        end
+    end
+
+    local function parsePower(expr)
+        local left, rest = parseNegate(expr)
+        while rest:sub(1, 1) == "^" do
+            local right
+            right, rest = parseNegate(rest:sub(2))
+            left = left ^ right
+        end
+        return left, rest
+    end
+
+    local function parseProduct(expr)
+        local left, rest = parsePower(expr)
+        while rest:match("^[%*/]") do
+            local operator = rest:sub(1, 1)
+            local right
+            right, rest = parsePower(rest:sub(2))
+            if operator == "*" then
+                left = left * right
+            else
+                left = left / right
+            end
+            return left, rest
+        end
+        return left, rest
+    end
+
+    local function parseSum(expr)
+        local left, rest = parseProduct(expr)
+        while rest:match("^[%+%-]") do
+            local operator = rest:sub(1, 1)
+            local right
+            right, rest = parseProduct(rest:sub(2))
+            if operator == "+" then
+                left = left + right
+            else
+                left = left - right
+            end
+        end
+        return left, rest
     end
 
     local function parse(expr)
-        expr = expr:gsub("%b()", function(subexpr)
-            return m.calculate(subexpr:sub(2, -2))
-        end)
-
-        for _, op in ipairs(tokens) do
-            local index = 1
-            while index <= #expr do
-                local s = expr:sub(index, index)
-
-                if s == op then
-                    local left = getLeftOperand(expr, index, op == "!")
-                    local right = op ~= "!" and expr:sub(index + 1):match("^[%w.]+") or ""
-                    local result = calc(tonumber(left), s, tonumber(right))
-                    if not result then
-                        return
-                    end
-                    expr = expr:replace(left .. op .. right, result)
-
-                    index = 1
-                else
-                    index = index + 1
-                end
-            end
+        local result = parseSum(expr:gsub("%s+", ""))
+        if not result then
+            return
         end
-        return tonumber(expr)
+        if tonumber(result) then
+            return result
+        end
+        local calculated, rest = unpack(result)
+        if rest ~= "" then
+            return -- Если остался непрочитанный текст, выражение было недействительным
+        end
+        return calculated
     end
 
     local function calcFunctions(expr)
