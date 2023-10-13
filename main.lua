@@ -1,7 +1,6 @@
 sw = display.contentWidth
 sh = display.contentHeight
-
-local box = native.newTextField(sw / 2, sh / 2, sw, sh / 5)
+fontSize = math.min(sw, sh) / 15
 
 function string:replace(old, new)
     local b, e = self:find(old, 1, true)
@@ -48,11 +47,17 @@ function table.contains(tbl, value)
     return false
 end
 
+function rgb(r, g, b)
+    return r / 255, g / 255, b / 255
+end
+
+widget = require("widget")
 local m = require("parser")
+local kb = require("keyboard")
 local test = require("test")
 test()
-box:addEventListener("userInput", function(event)
-    if event.phase == "submitted" then
-        print("RES:", m.calculate(event.target.text))
-    end
+
+local box = native.newTextField(sw / 2, sh / 10, sw / 1.1, sh / 5)
+kb(box, nil, function()
+    box.text = tostring(m.calculate(box.text))
 end)
