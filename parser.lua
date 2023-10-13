@@ -5,7 +5,6 @@ function m.calculate(expr)
     if tonumber(expr) then
         return tonumber(expr)
     end
-    local tokens = {"!", "^", "*", "/", "%", "+", "-"}
     local consts = {
         pi = math.pi,
         e = math.exp(1)
@@ -83,23 +82,6 @@ function m.calculate(expr)
             res = res * i
         end
         return res
-    end
-    
-    local function calc(left, operator, right)
-        if operator ~= "!" and (right == nil or left == nil) then
-            return
-        end
-
-        local operators = {
-            ["!"] = function() return factorial(left) end,
-            ["^"] = function() return left ^ right end,
-            ["*"] = function() return left * right end,
-            ["/"] = function() return left / right end,
-            ["%"] = function() return left % right end,
-            ["+"] = function() return left + right end,
-            ["-"] = function() return left - right end
-        }
-        return operators[operator]()
     end
 
     local function parseNumber(expr)
