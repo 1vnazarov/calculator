@@ -101,9 +101,31 @@ local function drawButtons(text, listener)
     end
 
     buttons.draw {
+        text = "(",
+        x = buttons.calcX(),
+        y = buttons.calcY(true) * 0.565,
+        listener = function()
+            text.text = text.text .. "("
+        end
+    }
+
+    buttons.draw {
+        text = ")",
         x = buttons.calcX(true),
+        y = buttons.calcY(true) * 0.64,
+        listener = function()
+            local c = text.text:sub(#text.text, #text.text)
+            if not tonumber(c) and c ~= "!" then return end
+            text.text = text.text .. ")"
+        end
+    }
+
+    buttons.draw {
+        x = buttons.calcX(true),
+        y = buttons.calcY() * 0.545,
         text = "<",
         textColor = { 0.8, 0.4, 0.2 },
+        width = buttons.width * 0.9,
         listener = function()
             if text.text:len() > 0 then
                 text.text = text.text:sub(1, -2)
@@ -113,23 +135,18 @@ local function drawButtons(text, listener)
 
     buttons.draw {
         text = "C",
-        y = buttons.calcY() * 0.565,
-        textColor = {0.8, 0.4, 0.2},
+        y = buttons.calcY() * 0.395,
+        textColor = { 0.8, 0.4, 0.2 },
+        width = buttons.width * 0.9,
         listener = function()
             text.text = ""
         end
     }
 
     buttons.draw {
-        text = "()",
-        x = buttons.calcX() * 0.605,
-        y = buttons.calcY() * 0.785
-    }
-
-    buttons.draw {
-        x = buttons.calcX(true),
         text = "=",
-        y = buttons.y * 0.75,
+        x = buttons.calcX(true) * 0.835,
+        y = buttons.calcY() * 0.72,
         width = buttons.width * 0.9,
         height = buttons.height * 2,
         listener = listener
