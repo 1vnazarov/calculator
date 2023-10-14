@@ -69,6 +69,13 @@ local function drawButtons(text, listener)
     end
 
     buttons.draw {
+        text = "funcs",
+        x = buttons.calcX() * 0.07,
+        y = buttons.calcY() * 0.885,
+        fontSize = 0.85
+    }
+
+    buttons.draw {
         text = ".",
         x = buttons.calcX() * 1.96,
         y = buttons.calcY() * 0.885,
@@ -140,6 +147,30 @@ local function drawButtons(text, listener)
         width = buttons.width * 0.9,
         listener = function()
             text.text = ""
+        end
+    }
+
+    local function validateFunc(func)
+        local c = text.text:sub(#text.text, #text.text)
+        if tonumber(c) or c == ")" then return end
+        text.text = text.text .. func .. "("
+    end
+
+    buttons.draw {
+        text = "pi",
+        x = buttons.calcX() * 0.505,
+        y = buttons.calcY() * 0.545,
+        listener = function()
+            text.text = text.text .. "pi"
+        end
+    }
+
+    buttons.draw {
+        text = "e",
+        x = buttons.calcX() * 0.505,
+        y = buttons.calcY() * 0.723,
+        listener = function()
+            text.text = text.text .. "e"
         end
     }
 
