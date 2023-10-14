@@ -2,239 +2,148 @@ local group
 local bg
 local function drawBg()
     group = display.newGroup()
-    bg = display.newRect(group, sw * 0.5, sh * 0.75, sw, sh * 0.45)
+    bg = display.newRect(group, sw * 0.5, sh * 0.7, sw, sh * 0.8)
 end
 
-local function drawButtons(text, onlyNums, listener)
-    local minus, dot, numsTab, opsTab
-    local mode = "nums"
-    local nums = {}
-    local numX, numY, numWidth, numHeight, numRadius = not onlyNums and bg.x * 0.16 or bg.x * 0.62, bg.contentBounds.yMin * 1.1, sw * 0.15, sh * 0.1, sw * 0.047
+local buttons = {}
+function buttons.init(x, y, xAsDefault)
+    buttons.defaultX = xAsDefault and x or buttons.defaultX or x
+    buttons.x = x or buttons.defaultX
+    buttons.y = not x and buttons.y or y
+    buttons.spaceX = sw * 0.02
+    buttons.spaceY = sh * 0.02
+    buttons.width = sw * 0.15
+    buttons.height = sh * 0.1
+    buttons.radius = sw * 0.05
+end
+
+function buttons.calcX(trueCalc)
+    local res = buttons.x + buttons.width + buttons.spaceX
+    buttons.x = trueCalc and res or buttons.x
+    return res
+end
+
+function buttons.calcY(trueCalc)
+    local res = buttons.y + buttons.height + buttons.spaceY
+    buttons.y = trueCalc and res or buttons.y
+    return res
+end
+
+function buttons.draw(options)
+    local button = widget.newButton{
+        x = options.x or buttons.x,
+        y = options.y or buttons.y,
+        label = options.text,
+        fontSize = fontSize * (options.fontSize or 1.5),
+        labelColor = { default = options.textColor or { 1, 1, 1 } },
+        shape = "roundedRect",
+        fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
+        width = options.width or buttons.width,
+        height = options.height or buttons.height,
+        radius = buttons.radius,
+        onRelease = options.listener
+    }
+    button.anchorX = 0
+    button.anchorY = 0
+    (options.parent or group):insert(button)
+    return button
+end
+
+local function drawButtons(text, listener)
+    buttons.init(bg.width * 0.01, bg.y * 0.65)
     for i = 0, 9 do
-        local options = {
-            x = numX,
-            y = numY,
-            label = i,
-            fontSize = fontSize * 2,
-            labelColor = { default = { 1, 1, 1 } },
-            shape = "roundedRect",
-            fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
-            width = numWidth,
-            height = numHeight,
-            cornerRadius = numRadius,
-            onRelease = function()
+        buttons.draw {
+            text = i,
+            x = i == 0 and buttons.calcX(),
+            y = i == 0 and buttons.calcY() * 1.622,
+            listener = function()
                 text.text = text.text .. i
             end
         }
-        if i == 0 then
-            options.x = not onlyNums and bg.x * 0.5 or bg.x * 0.96
-            options.y = bg.contentBounds.yMax * 0.95
-            options.width = sw * 0.25
-            options.height = sh * 0.08
+        if i % 3 == 0 then
+            buttons.init()
+            buttons.calcY(true)
         else
-            if i % 3 == 0 then
-                numX = not onlyNums and bg.x * 0.16 or bg.x * 0.62
-                numY = numY + numHeight + sh * 0.02
-            else
-                numX = numX + numWidth + sw * 0.02
-            end
+            buttons.calcX(true)
         end
-        nums[i] = widget.newButton(options)
-        group:insert(nums[i])
     end
-    local ops = { "!", "^", "%", "*", "/", "+", "-" }
-    minus = widget.newButton{
-        x = bg.x * 1.26,
-        y = bg.contentBounds.yMin * 1.55,
-        label = "-",
-        fontSize = fontSize * 3,
-        labelColor = {default = {1, 1, 1}},
-        shape = "roundedRect",
-        fillColor = {default = {rgb(85, 70, 195)}, over = {rgb(199, 8, 88)}},
-        width = numWidth  * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
-            local c = text.text:sub(#text.text, #text.text)
-            if table.contains({"+", "-", "*", "/", "^", "!"}, c) then return end
-            text.text = text.text .. "-"
-        end
-    }
-    group:insert(minus)
-    local operators = {}
-    numX, numY, numWidth, numHeight, numRadius = bg.x * 0.62, bg.contentBounds.yMin * 1.1,
-        sw * 0.15, sh * 0.1, sw * 0.047
-    for i, v in ipairs(ops) do
-        local options = {
-            x = numX,
-            y = numY,
-            label = v,
-            fontSize = fontSize * 2,
-            labelColor = { default = { 1, 1, 1 } },
-            shape = "roundedRect",
-            fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
-            width = numWidth,
-            height = numHeight,
-            cornerRadius = numRadius,
-            onRelease = function()
-                local c = text.text:sub(#text.text, #text.text)
-                if table.contains({ "+", "-", "*", "/", "^", "!" }, c) then return end
-                text.text = text.text .. v
-                if table.contains({ "+", "*", "/", "^", "!" }, text.text) then text.text = "" end
-            end
-        }
-        if i == 0 then
-            options.x = bg.x * 0.96
-            options.y = bg.contentBounds.yMax * 0.95
-            options.width = sw * 0.25
-            options.height = sh * 0.08
-        else
-            if i % 3 == 0 then
-                numX = bg.x * 0.62
-                numY = numY + numHeight + sh * 0.02
-            else
-                numX = numX + numWidth + sw * 0.02
-            end
-        end
-        operators[i] = widget.newButton(options)
-        operators[i].isVisible = false
-        group:insert(operators[i])
-    end
-    opsTab = widget.newButton {
-        x = bg.x * 1.26,
-        y = bg.contentBounds.yMin * 1.3,
-        label = "+-*/!^",
-        fontSize = fontSize,
-        labelColor = { default = { 1, 1, 1 } },
-        shape = "roundedRect",
-        fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
-        width = numWidth * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
-            for _, v in pairs(nums) do
-                v.isVisible = false
-            end
-            dot.isVisible = false
-            minus.isVisible = false
-            opsTab.isVisible = false
-            numsTab.isVisible = true
-            for _, v in pairs(operators) do
-                v.isVisible = true
-            end
-        end
-    }
-    numsTab = widget.newButton {
-        x = bg.x * 1.26,
-        y = bg.contentBounds.yMin * 1.7,
-        label = "0-9",
-        fontSize = fontSize,
-        labelColor = { default = { 1, 1, 1 } },
-        shape = "roundedRect",
-        fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
-        width = numWidth * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
-            for _, v in pairs(nums) do
-                v.isVisible = true
-            end
-            dot.isVisible = true
-            minus.isVisible = true
-            numsTab.isVisible = false
-            opsTab.isVisible = true
-            for _, v in pairs(operators) do
-                v.isVisible = false
-            end
-        end
-    }
-    numsTab.isVisible = false
-    group:insert(minus)
-    dot = widget.newButton{
-        x = bg.x * 1.26,
-        y = bg.contentBounds.yMin * 1.76,
-        label = ".",
-        fontSize = fontSize * 3,
-        labelColor = {default = {1, 1, 1}},
-        shape = "roundedRect",
-        fillColor = {default = {rgb(85, 70, 195)}, over = {rgb(199, 8, 88)}},
-        width = numWidth  * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
-            local len = text.text:len()
-            if tonumber(text.text:sub(len, len)) and not text.text:find(".", 1, true) then
+
+    buttons.draw {
+        text = ".",
+        x = buttons.calcX() * 1.96,
+        y = buttons.calcY() * 0.885,
+        listener = function()
+            local operand = text.text:match("[^%+%-*/%%]+$") -- Передавать бы сюда строчку, формирующуюся из таблицы операторов
+            if operand and not operand:find("%.") then
                 text.text = text.text .. "."
             end
         end
     }
-    group:insert(dot)
-    local clear = widget.newButton{
-        x = bg.x * 1.75,
-        y = bg.contentBounds.yMin * 1.1,
-        label = "C",
-        fontSize = fontSize * 2,
-        labelColor = {default = {1, 0, 0}},
-        shape = "roundedRect",
-        fillColor = {default = {rgb(85, 70, 195)}, over = {rgb(199, 8, 88)}},
-        width = numWidth  * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
-            text.text = ""
+
+    buttons.init(bg.width * 0.01, bg.y * 0.45, true)
+    local ops = { "!", "^", "%", "*", "/", "+", "-" }
+    for i, v in pairs(ops) do
+        buttons.draw {
+            text = v,
+            listener = function()
+                local c = text.text:sub(#text.text, #text.text)
+                if table.contains({unpack(ops), "."}, c) then return end
+                text.text = text.text .. v
+                if table.contains(ops, text.text) then text.text = "" end
+            end
+        }
+        if i % 4 == 0 then
+            buttons.init()
+            buttons.calcY(true)
+        else
+            buttons.calcX(true)
         end
-    }
-    group:insert(clear)
-    local delete = widget.newButton{
-        x = bg.x * 1.75,
-        y = bg.contentBounds.yMin * 1.33,
-        label = "<",
-        fontSize = fontSize * 2,
-        labelColor = {default = {0.9, 0.2, 0.1}},
-        shape = "roundedRect",
-        fillColor = {default = {rgb(85, 70, 195)}, over = {rgb(199, 8, 88)}},
-        width = numWidth  * 1.5,
-        height = numHeight,
-        cornerRadius = numRadius,
-        onRelease = function()
+    end
+
+    buttons.draw {
+        x = buttons.calcX(true),
+        text = "<",
+        textColor = { 0.8, 0.4, 0.2 },
+        listener = function()
             if text.text:len() > 0 then
                 text.text = text.text:sub(1, -2)
             end
         end
     }
-    group:insert(delete)
-    local result = widget.newButton{
-        x = bg.x * 1.75,
-        y = bg.contentBounds.yMin * 1.65,
-        label = "=",
-        fontSize = fontSize * 3,
-        labelColor = {default = {1, 1, 1}},
-        shape = "roundedRect",
-        fillColor = {default = {rgb(85, 70, 195)}, over = {rgb(199, 8, 88)}},
-        width = numWidth * 1.5,
-        height = numHeight * 2,
-        cornerRadius = numRadius,
-        onRelease = function()
-            listener()
+
+    buttons.draw {
+        text = "C",
+        y = buttons.calcY() * 0.565,
+        textColor = {0.8, 0.4, 0.2},
+        listener = function()
+            text.text = ""
         end
     }
-    group:insert(result)
-    if onlyNums then
-        dot.isVisible = false
-        minus.isVisible = false
-        clear.isVisible = false
-        return
-    end
+
+    buttons.draw {
+        text = "()",
+        x = buttons.calcX() * 0.605,
+        y = buttons.calcY() * 0.785
+    }
+
+    buttons.draw {
+        x = buttons.calcX(true),
+        text = "=",
+        y = buttons.y * 0.75,
+        width = buttons.width * 0.9,
+        height = buttons.height * 2,
+        listener = listener
+    }
 end
 
-local function kb(text, onlyNums, listener)
+local function kb(text, listener)
     if bg and bg.removeSelf then
         bg:removeSelf()
         bg = nil
     end
     if group and group.removeSelf then group:removeSelf() group = nil end
     drawBg()
-    drawButtons(text, onlyNums, listener)
+    drawButtons(text, listener)
 end
 
 return kb

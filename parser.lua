@@ -5,6 +5,9 @@ function m.calculate(expr)
     if tonumber(expr) then
         return tonumber(expr)
     end
+    if expr == "" then
+        return expr
+    end
     local consts = {
         pi = math.pi,
         e = math.exp(1)
