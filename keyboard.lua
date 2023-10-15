@@ -102,7 +102,10 @@ local function drawButtons(text, listener)
             y = i == 0 and buttons.calcY() * 1.622,
             layout = "numbers",
             listener = function()
-                if endsAsConsts() or getLastChar() == ")" then return end
+                if getLastChar() == ")" then return end
+                if endsAsConsts() then
+                    text.text = text.text .. "*"
+                end
                 text.text = text.text .. i
             end
         }
@@ -167,7 +170,10 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local c = getLastChar()
-            if tonumber(c) or c == "." or endsAsConsts() then return end
+            if c == "." then return end
+            if tonumber(c) or endsAsConsts() then
+                text.text = text.text .. "*"
+            end
             text.text = text.text .. "("
         end
     }
@@ -194,7 +200,7 @@ local function drawButtons(text, listener)
         listener = function()
             if text.text:len() > 0 then
                 local _, index = endsAsConsts()
-                text.text = text.text:sub(1, -2 - (index or 0))
+                text.text = text.text:sub(1, (-(index or 1)) - 1)
             end
         end
     }
@@ -228,7 +234,10 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local c = getLastChar()
-            if not table.contains(allowedForConsts, c) then return end
+            if not table.contains(allowedForConsts, c) and not endsAsConsts() and not tonumber(c) then return end
+            if tonumber(c) or endsAsConsts() then
+                text.text = text.text .. "*"
+            end
             text.text = text.text .. "pi"
         end
     }
@@ -240,7 +249,10 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local c = getLastChar()
-            if not table.contains(allowedForConsts, c) then return end
+            if not table.contains(allowedForConsts, c) and not endsAsConsts() and not tonumber(c) then return end
+            if tonumber(c) or endsAsConsts() then
+                text.text = text.text .. "*"
+            end
             text.text = text.text .. "e"
         end
     }
