@@ -129,14 +129,16 @@ function m.calculate(expr)
 
     local function parseProduct(expr)
         local left, rest = parsePower(expr)
-        while rest:match("^[%*/]") do
+        while rest:match("^[%*/%%]") do
             local operator = rest:sub(1, 1)
             local right
             right, rest = parsePower(rest:sub(2))
             if operator == "*" then
                 left = left * right
-            else
+            elseif operator == "/" then
                 left = left / right
+            elseif operator == "%" then
+                left = left % right
             end
             return left, rest
         end
