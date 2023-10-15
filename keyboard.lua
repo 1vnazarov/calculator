@@ -78,20 +78,17 @@ local function drawButtons(text, listener)
     end
 
     local function checkBrackets()
-        local stack = {}
+        local openBraceCount = 0
+        local closeBraceCount = 0
         for i = 1, #text.text do
-            local c = text.text:sub(i, i)
-            if c == "(" then
-                table.insert(stack, c)
-            elseif c == ")" then
-                if #stack > 0 and stack[#stack] == "(" then
-                    table.remove(stack)
-                else
-                    return false
-                end
+            if text.text:sub(i, i) == "(" then
+                openBraceCount = openBraceCount + 1
+            end
+            if text.text:sub(i, i) == ")" then
+                closeBraceCount = closeBraceCount + 1
             end
         end
-        return #stack == 0
+        return not (openBraceCount <= closeBraceCount)
     end
 
     buttons.init(bg.width * 0.01, bg.y * 0.65)
@@ -183,8 +180,10 @@ local function drawButtons(text, listener)
         y = buttons.calcY(true) * 0.64,
         layout = "numbers",
         listener = function()
+            local allowClose = table.copy(ops)
+            table.remove(allowClose, table.indexOf(allowClose, "!"))
             local c = getLastChar()
-            if checkBrackets() or (not tonumber(c) and c ~= "!") then return end
+            if not checkBrackets() or table.contains(allowClose, c) then return end
             text.text = text.text .. ")"
         end
     }
@@ -234,7 +233,7 @@ local function drawButtons(text, listener)
         listener = function()
             local c = getLastChar()
             if not table.contains(allowedForConsts, c) and not endsAsConsts() and not tonumber(c) then return end
-            if tonumber(c) or endsAsConsts() then
+            if tonumber(c) or endsAsConsts() or c == ")" then
                 text.text = text.text .. "*"
             end
             text.text = text.text .. "pi"
@@ -249,7 +248,7 @@ local function drawButtons(text, listener)
         listener = function()
             local c = getLastChar()
             if not table.contains(allowedForConsts, c) and not endsAsConsts() and not tonumber(c) then return end
-            if tonumber(c) or endsAsConsts() then
+            if tonumber(c) or endsAsConsts() or c == ")" then
                 text.text = text.text .. "*"
             end
             text.text = text.text .. "e"
