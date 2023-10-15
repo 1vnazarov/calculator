@@ -140,7 +140,6 @@ function m.calculate(expr)
             elseif operator == "%" then
                 left = left % right
             end
-            return left, rest
         end
         return left, rest
     end
