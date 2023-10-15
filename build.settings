@@ -37,6 +37,11 @@ settings =
 		},
 	},
 
+	window =
+	{
+        defaultViewWidth = 540,
+		defaultViewHeight = 960,
+	},
 	--
 	-- Plugins section
 	--
