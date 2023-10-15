@@ -133,9 +133,8 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local operand = text.text:match("[" .. table.concat(ops, "%", 2) .. "]+$") -- Факториал не брать
-            if operand and not operand:find("%.") then
-                text.text = text.text .. "."
-            end
+            if not (endsAsConsts() or (operand and not operand:find("%."))) then return end
+            text.text = text.text .. "."
         end
     }
 
