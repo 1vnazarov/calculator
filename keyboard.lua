@@ -132,7 +132,8 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local operand = text.text:match("[" .. table.concat(ops, "%", 2) .. "]+$") -- Факториал не брать
-            if not (endsAsConsts() or (operand and not operand:find("%."))) then return end
+            local c = getLastChar()
+            if endsAsConsts() or not (operand and not operand:find("%.")) or c == ")" or c == "(" then return end
             text.text = text.text .. "."
         end
     }
@@ -144,7 +145,7 @@ local function drawButtons(text, listener)
             layout = "numbers",
             listener = function()
                 local opsDot = table.copy(ops)
-                opsDot[#opsDot] = "." -- Минус можно, поэтому точку запихнуть на его место
+                opsDot[table.indexOf(opsDot, "-")] = "."
                 local c = getLastChar()
                 if table.contains(opsDot, c) or getLastChar() == "-" then return end
                 text.text = text.text .. v
@@ -183,7 +184,7 @@ local function drawButtons(text, listener)
             local allowClose = table.copy(ops)
             table.remove(allowClose, table.indexOf(allowClose, "!"))
             local c = getLastChar()
-            if not checkBrackets() or table.contains(allowClose, c) then return end
+            if not checkBrackets() or table.contains(allowClose, c) or c == "(" then return end
             text.text = text.text .. ")"
         end
     }
