@@ -145,7 +145,7 @@ local function drawButtons(text, listener)
                 local opsDot = table.copy(ops)
                 opsDot[table.indexOf(opsDot, "-")] = "."
                 local c = getLastChar()
-                if table.contains(opsDot, c) or getLastChar() == "-" then return end
+                if table.contains(opsDot, c) or c == "-" then return end
                 text.text = text.text .. v
                 if table.contains(opsDot, text.text) then text.text = "" end
             end
