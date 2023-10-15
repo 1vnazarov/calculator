@@ -47,6 +47,18 @@ function table.contains(tbl, value)
     return false
 end
 
+function table.copy(tbl)
+    local copy = {}
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            copy[k] = table.copy(v)
+        else
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
 function rgb(r, g, b)
     return r / 255, g / 255, b / 255
 end

@@ -6,8 +6,9 @@ local function drawBg()
 end
 
 local buttons = {}
-function buttons.init(x, y, xAsDefault)
-    buttons.defaultX = xAsDefault and x or buttons.defaultX or x
+function buttons.init(x, y, defaultAsX)
+    buttons.cache = buttons.cache or {}
+    buttons.defaultX = defaultAsX and x or buttons.defaultX or x
     buttons.x = x or buttons.defaultX
     buttons.y = not x and buttons.y or y
     buttons.spaceX = sw * 0.02
@@ -29,6 +30,18 @@ function buttons.calcY(trueCalc)
     return res
 end
 
+function buttons.applyLayout(layout)
+    for _, v in ipairs(buttons.cache) do
+        if v.layout then
+            if v.layout == layout then
+                v.isVisible = true
+            else
+                v.isVisible = false
+            end
+        end
+    end
+end
+
 function buttons.draw(options)
     local button = widget.newButton{
         x = options.x or buttons.x,
@@ -46,17 +59,33 @@ function buttons.draw(options)
     button.anchorX = 0
     button.anchorY = 0
     (options.parent or group):insert(button)
+    button.layout = options.layout
+    table.insert(buttons.cache, button)
     return button
 end
 
 local function drawButtons(text, listener)
+    local function endsAsConsts()
+        for _, v in ipairs{"pi", "e"} do
+            if text.text:ends(v) then
+                return true, #v
+            end
+        end
+    end
+
+    local function getLastChar()
+        return text.text:sub(#text.text, #text.text)
+    end
+
     buttons.init(bg.width * 0.01, bg.y * 0.65)
     for i = 0, 9 do
         buttons.draw {
             text = i,
             x = i == 0 and buttons.calcX(),
             y = i == 0 and buttons.calcY() * 1.622,
+            layout = "numbers",
             listener = function()
+                if endsAsConsts() or getLastChar() == ")" then return end
                 text.text = text.text .. i
             end
         }
@@ -72,15 +101,21 @@ local function drawButtons(text, listener)
         text = "funcs",
         x = buttons.calcX() * 0.07,
         y = buttons.calcY() * 0.885,
-        fontSize = 0.85
+        layout = "numbers",
+        fontSize = 0.85,
+        listener = function()
+            buttons.applyLayout("funcs")
+        end
     }
 
+    local ops = { "!", "^", "%", "*", "/", "+", "-" }
     buttons.draw {
         text = ".",
         x = buttons.calcX() * 1.96,
         y = buttons.calcY() * 0.885,
+        layout = "numbers",
         listener = function()
-            local operand = text.text:match("[^%+%-*/%%]+$") -- Передавать бы сюда строчку, формирующуюся из таблицы операторов
+            local operand = text.text:match("[" .. table.concat(ops, "%", 2) .. "]+$") -- Факториал не брать
             if operand and not operand:find("%.") then
                 text.text = text.text .. "."
             end
@@ -88,15 +123,17 @@ local function drawButtons(text, listener)
     }
 
     buttons.init(bg.width * 0.01, bg.y * 0.45, true)
-    local ops = { "!", "^", "%", "*", "/", "+", "-" }
     for i, v in pairs(ops) do
         buttons.draw {
             text = v,
+            layout = "numbers",
             listener = function()
-                local c = text.text:sub(#text.text, #text.text)
-                if table.contains({unpack(ops), "."}, c) then return end
+                local opsDot = table.copy(ops)
+                opsDot[#opsDot] = "." -- Минус можно, поэтому точку запихнуть на его место
+                local c = getLastChar()
+                if table.contains(opsDot, c) or getLastChar() == "-" then return end
                 text.text = text.text .. v
-                if table.contains(ops, text.text) then text.text = "" end
+                if table.contains(opsDot, text.text) then text.text = "" end
             end
         }
         if i % 4 == 0 then
@@ -111,7 +148,10 @@ local function drawButtons(text, listener)
         text = "(",
         x = buttons.calcX(),
         y = buttons.calcY(true) * 0.565,
+        layout = "numbers",
         listener = function()
+            local c = getLastChar()
+            if tonumber(c) or c == "." or endsAsConsts() then return end
             text.text = text.text .. "("
         end
     }
@@ -120,8 +160,9 @@ local function drawButtons(text, listener)
         text = ")",
         x = buttons.calcX(true),
         y = buttons.calcY(true) * 0.64,
+        layout = "numbers",
         listener = function()
-            local c = text.text:sub(#text.text, #text.text)
+            local c = getLastChar()
             if not tonumber(c) and c ~= "!" then return end
             text.text = text.text .. ")"
         end
@@ -133,9 +174,11 @@ local function drawButtons(text, listener)
         text = "<",
         textColor = { 0.8, 0.4, 0.2 },
         width = buttons.width * 0.9,
+        layout = "numbers",
         listener = function()
             if text.text:len() > 0 then
-                text.text = text.text:sub(1, -2)
+                local _, index = endsAsConsts()
+                text.text = text.text:sub(1, -2 - (index or 0))
             end
         end
     }
@@ -145,6 +188,7 @@ local function drawButtons(text, listener)
         y = buttons.calcY() * 0.395,
         textColor = { 0.8, 0.4, 0.2 },
         width = buttons.width * 0.9,
+        layout = "numbers",
         listener = function()
             text.text = ""
         end
@@ -156,11 +200,19 @@ local function drawButtons(text, listener)
         text.text = text.text .. func .. "("
     end
 
+    local allowedForConsts = table.copy(ops)
+    table.insert(allowedForConsts, "(")
+    table.insert(allowedForConsts, ")")
+    table.insert(allowedForConsts, ",")
+    table.insert(allowedForConsts, "")
     buttons.draw {
         text = "pi",
         x = buttons.calcX() * 0.505,
         y = buttons.calcY() * 0.545,
+        layout = "numbers",
         listener = function()
+            local c = getLastChar()
+            if not table.contains(allowedForConsts, c) then return end
             text.text = text.text .. "pi"
         end
     }
@@ -169,7 +221,10 @@ local function drawButtons(text, listener)
         text = "e",
         x = buttons.calcX() * 0.505,
         y = buttons.calcY() * 0.723,
+        layout = "numbers",
         listener = function()
+            local c = getLastChar()
+            if not table.contains(allowedForConsts, c) then return end
             text.text = text.text .. "e"
         end
     }
@@ -180,8 +235,11 @@ local function drawButtons(text, listener)
         y = buttons.calcY() * 0.72,
         width = buttons.width * 0.9,
         height = buttons.height * 2,
+        layout = "numbers",
         listener = listener
     }
+
+    buttons.applyLayout("numbers")
 end
 
 local function kb(text, listener)
