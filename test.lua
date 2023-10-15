@@ -10,6 +10,7 @@ add("0-2", -2)
 add("pi*2", math.pi * 2)
 add("5!", 120)
 add("sin(3.14)", math.sin(3.14))
+add("5+(3-5)*3", -1)
 
 return function()
     local passedTests = 0
