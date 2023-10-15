@@ -15,7 +15,7 @@ function buttons.init(x, y, defaultAsX)
     buttons.spaceY = sh * 0.02
     buttons.width = sw * 0.15
     buttons.height = sh * 0.1
-    buttons.radius = sw * 0.05
+    buttons.radius = sh / sw * 20
 end
 
 function buttons.calcX(trueCalc)
