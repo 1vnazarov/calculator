@@ -32,18 +32,16 @@ end
 
 function buttons.applyLayout(layout)
     for _, v in ipairs(buttons.cache) do
-        if v.layout then
-            if v.layout == layout then
-                v.isVisible = true
-            else
-                v.isVisible = false
-            end
+        if v.layout and v.layout == layout then
+            v.isVisible = true
+        else
+            v.isVisible = false
         end
     end
 end
 
 function buttons.draw(options)
-    local button = widget.newButton{
+    local button = widget.newButton {
         x = options.x or buttons.x,
         y = options.y or buttons.y,
         label = options.text,
@@ -66,7 +64,7 @@ end
 
 local function drawButtons(text, listener)
     local function endsAsConsts()
-        for _, v in ipairs{"pi", "e"} do
+        for _, v in ipairs { "pi", "e" } do
             if text.text:ends(v) then
                 return true, #v
             end
@@ -215,12 +213,6 @@ local function drawButtons(text, listener)
         end
     }
 
-    local function validateFunc(func)
-        local c = text.text:sub(#text.text, #text.text)
-        if tonumber(c) or c == ")" then return end
-        text.text = text.text .. func .. "("
-    end
-
     local allowedForConsts = table.copy(ops)
     table.insert(allowedForConsts, "(")
     table.insert(allowedForConsts, ")")
@@ -266,6 +258,25 @@ local function drawButtons(text, listener)
         listener = listener
     }
 
+    buttons.init(bg.width * 0.01, bg.y * 0.45, true)
+    for i, v in ipairs { "sin", "cos", "tan", "ctg", "abs", "deg", "rad", "integ\nral" } do
+        buttons.draw {
+            text = v,
+            layout = "funcs",
+            fontSize = 0.9,
+            listener = function()
+                text.text = text.text .. v:gsub("\n", "") .. "("
+                buttons.applyLayout("numbers")
+            end
+        }
+        if i % 4 == 0 then
+            buttons.init()
+            buttons.calcY(true)
+        else
+            buttons.calcX(true)
+        end
+    end
+
     buttons.applyLayout("numbers")
 end
 
@@ -274,7 +285,10 @@ local function kb(text, listener)
         bg:removeSelf()
         bg = nil
     end
-    if group and group.removeSelf then group:removeSelf() group = nil end
+    if group and group.removeSelf then
+        group:removeSelf()
+        group = nil
+    end
     drawBg()
     drawButtons(text, listener)
 end

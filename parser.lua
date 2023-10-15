@@ -9,7 +9,7 @@ function m.calculate(expr)
         return expr
     end
     local consts = {
-        pi = math.pi,
+        pi = 3.14,
         e = math.exp(1)
     }
 
