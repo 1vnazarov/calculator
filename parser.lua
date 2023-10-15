@@ -16,32 +16,24 @@ function m.calculate(expr)
     local function replaceConstants(expr, vars) -- На самом деле, не только замена констант, но еще и переменных
         for name, value in pairs(vars or consts) do
             -- Проверяем, что перед и после имени константы нет букв
-            local pattern = ("([^%a%d%.])"):rep(#name) .. name .. ("([^%a%d%.])"):rep(#name)
-            expr = expr:gsub(pattern, function(left, right)
-                local left_bracket, right_bracket = left:sub(-1), right:sub(1)
-                if (left_bracket == "(" or left_bracket == "=") and right_bracket == ")" then
-                    -- В найденном совпадении заменяем имя константы на ее значение
+            expr = expr:gsub("(%W)" .. name .. "(%W)",
+                function(left, right)
                     return left .. tostring(value) .. right
-                else -- Отменяем замену, если вокруг имени есть скобки
-                    return left .. name .. right
-                end
-            end)
-    
-            -- Обработка первого символа в выражении, если он является константой
-            if expr:sub(1, #name) == name then
-                expr = tostring(value) .. expr:sub(#name + 1)
+                end)
+            -- Проверяем, если имя константы находится в начале строки
+            expr = expr:gsub("^" .. name .. "(%W)",
+                function(right)
+                    return tostring(value) .. right
+                end)
+            -- Проверяем, если имя константы находится в конце строки
+            expr = expr:gsub("(%W)" .. name .. "$",
+                function(left)
+                    return left .. tostring(value)
+                end)
+            -- Проверяем, если имя константы занимает всю строку
+            if expr == name then
+                expr = tostring(value)
             end
-    
-            -- Обработка последнего символа в выражении, если он является константой
-            if expr:sub(-#name) == name then
-                expr = expr:sub(1, #expr - #name) .. tostring(value)
-            end
-    
-            -- Обработка вхождений констант в аргументах функций
-            expr = expr:gsub("%b()", function(arg)
-                local replaced = replaceConstants(arg:sub(2, #arg - 1)) -- Заменяем константы внутри скобок
-                return "(" .. replaced .. ")" -- Возвращаем скобки вокруг замененного значения
-            end)
         end
         return expr
     end
@@ -55,6 +47,7 @@ function m.calculate(expr)
         end,
         abs = math.abs,
         deg = math.deg,
+        rad = math.rad,
         integral = function(func, a, b, n)
             n = n or 100
             local h = (b - a) / n
@@ -160,7 +153,6 @@ function m.calculate(expr)
     end
 
     local function parse(expr)
-        expr = expr:gsub("%s+", "")
         expr = expr:gsub("%b()", function(subexpr)
             return m.calculate(subexpr:sub(2, -2))
         end)
