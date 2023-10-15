@@ -77,6 +77,23 @@ local function drawButtons(text, listener)
         return text.text:sub(#text.text, #text.text)
     end
 
+    local function checkBrackets()
+        local stack = {}
+        for i = 1, #text.text do
+            local c = text.text:sub(i, i)
+            if c == "(" then
+                table.insert(stack, c)
+            elseif c == ")" then
+                if #stack > 0 and stack[#stack] == "(" then
+                    table.remove(stack)
+                else
+                    return false
+                end
+            end
+        end
+        return #stack == 0
+    end
+
     buttons.init(bg.width * 0.01, bg.y * 0.65)
     for i = 0, 9 do
         buttons.draw {
@@ -163,7 +180,7 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             local c = getLastChar()
-            if not tonumber(c) and c ~= "!" then return end
+            if checkBrackets() or (not tonumber(c) and c ~= "!") then return end
             text.text = text.text .. ")"
         end
     }
