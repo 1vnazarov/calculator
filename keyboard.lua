@@ -102,8 +102,7 @@ local function drawButtons(text, listener)
             y = i == 0 and buttons.calcY() * 1.622,
             layout = "numbers",
             listener = function()
-                if getLastChar() == ")" then return end
-                if endsAsConsts() then
+                if endsAsConsts() or getLastChar() == ")" then
                     text.text = text.text .. "*"
                 end
                 text.text = text.text .. i

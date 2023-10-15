@@ -160,7 +160,11 @@ function m.calculate(expr)
     end
 
     local function parse(expr)
-        local result = parseSum(expr:gsub("%s+", ""))
+        expr = expr:gsub("%s+", "")
+        expr = expr:gsub("%b()", function(subexpr)
+            return m.calculate(subexpr:sub(2, -2))
+        end)
+        local result = parseSum(expr)
         if not result then
             return
         end
