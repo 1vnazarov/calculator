@@ -70,7 +70,6 @@ local test = require("test")
 test()
 
 local box = native.newTextBox(sw / 2, sh / 10, sw / 1.1, sh / 5)
-box.isEditable = true
 box.size = fontSize * 1.5
 kb(box, function()
     box.text = tostring(m.calculate(box.text))
