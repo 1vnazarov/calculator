@@ -91,7 +91,7 @@ local function drawButtons(text, listener)
         end
     end
     
-    local funcs = { "sin", "cos", "tan", "ctg", "abs", "deg", "rad", "integral" }
+    local funcs = { "sin", "cos", "tan", "ctg", "abs", "deg", "rad", "root", "integral" }
     local function endsAsFuncs()
         for _, v in ipairs(funcs) do
             if text.text:ends(v .. "(") then
@@ -314,30 +314,25 @@ local function drawButtons(text, listener)
 
     buttons.draw {
         text = "X",
-        x = buttons.calcX() * 3.825,
+        x = buttons.calcX() * 2,
         y = buttons.calcY() * 0.465,
         layout = "funcs",
         fontSize = 0.9,
         listener = function()
-            local c = getLastChar()
-            if c == "(" or c == "," then
-                text.text = text.text .. "x"
-            end
+            text.text = text.text .. "x"
             buttons.applyLayout("numbers")
         end
     }
 
     buttons.draw {
         text = ",",
-        x = buttons.calcX() * 3.825,
+        x = buttons.calcX() * 2,
         y = buttons.calcY() * 0.645,
         layout = "funcs",
         fontSize = 0.9,
         listener = function()
             local c = getLastChar()
             if c == "," or c == "(" then return end
-            local operand = text.text:match("[^%d%.]+$")
-            if operand and operand ~= ")" then return end
             text.text = text.text .. ","
             buttons.applyLayout("numbers")
         end

@@ -48,6 +48,10 @@ function m.calculate(expr)
         abs = math.abs,
         deg = math.deg,
         rad = math.rad,
+        root = function(x, n)
+            n = n or 2
+            return x ^ (1 / n)
+        end,
         integral = function(func, a, b, n)
             n = n or 100
             local h = (b - a) / n
