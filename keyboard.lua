@@ -32,16 +32,12 @@ end
 
 function buttons.applyLayout(layout)
     for _, v in ipairs(buttons.cache) do
-        if v.layout and v.layout == layout then
-            v.isVisible = true
-        else
-            v.isVisible = false
-        end
+        v.isVisible = v.layout and v.layout == layout
     end
 end
 
 function buttons.draw(options)
-    local fontCoef = options.fontSize or 1.1
+    local fontCoef = options.fontSize or 1.15
     local fontSize = fontSize * fontCoef
 
     local testText = display.newText {
@@ -149,7 +145,6 @@ local function drawButtons(text, listener)
         x = buttons.calcX() * 0.07,
         y = buttons.calcY() * 0.885,
         layout = "numbers",
-        fontSize = 0.85,
         listener = function()
             buttons.applyLayout("funcs")
         end
