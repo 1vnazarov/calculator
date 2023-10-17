@@ -41,15 +41,39 @@ function buttons.applyLayout(layout)
 end
 
 function buttons.draw(options)
+    local fontCoef = options.fontSize or 1.1
+    local fontSize = fontSize * fontCoef
+
+    local testText = display.newText {
+        text = options.text,
+        font = options.font,
+        fontSize = fontSize,
+    }
+    testText.isVisible = false
+
+    local width = options.width or buttons.width
+    local maxWidth = width
+
+    -- Если текст слишком большой, уменьшаем размер шрифта
+    while testText.contentWidth > maxWidth do
+        fontCoef = fontCoef - 0.1
+        testText.size = fontSize * fontCoef
+    end
+    fontSize = fontSize * fontCoef
+
+    testText:removeSelf()
+    testText = nil
+
     local button = widget.newButton {
         x = options.x or buttons.x,
         y = options.y or buttons.y,
         label = options.text,
-        fontSize = fontSize * (options.fontSize or 1.5),
+        font = options.font,
+        fontSize = fontSize,
         labelColor = { default = options.textColor or { 1, 1, 1 } },
         shape = "roundedRect",
         fillColor = { default = { rgb(85, 70, 195) }, over = { rgb(199, 8, 88) } },
-        width = options.width or buttons.width,
+        width = width,
         height = options.height or buttons.height,
         radius = buttons.radius,
         onRelease = options.listener
@@ -66,7 +90,16 @@ local function drawButtons(text, listener)
     local function endsAsConsts()
         for _, v in ipairs { "pi", "e" } do
             if text.text:ends(v) then
-                return true, #v
+                return #v
+            end
+        end
+    end
+    
+    local funcs = { "sin", "cos", "tan", "ctg", "abs", "deg", "rad", "integral" }
+    local function endsAsFuncs()
+        for _, v in ipairs(funcs) do
+            if text.text:ends(v .. "(") then
+                return #v + 1
             end
         end
     end
@@ -196,7 +229,7 @@ local function drawButtons(text, listener)
         layout = "numbers",
         listener = function()
             if text.text:len() > 0 then
-                local _, index = endsAsConsts()
+                local index = endsAsConsts() or endsAsFuncs()
                 text.text = text.text:sub(1, (-(index or 1)) - 1)
             end
         end
@@ -259,13 +292,16 @@ local function drawButtons(text, listener)
     }
 
     buttons.init(bg.width * 0.01, bg.y * 0.45, true)
-    for i, v in ipairs { "sin", "cos", "tan", "ctg", "abs", "deg", "rad", "integ\nral" } do
+    for i, v in ipairs(funcs) do
         buttons.draw {
             text = v,
             layout = "funcs",
             fontSize = 0.9,
             listener = function()
-                text.text = text.text .. v:gsub("\n", "") .. "("
+                if tonumber(getLastChar()) or endsAsConsts() then
+                    text.text = text.text .. "*"
+                end
+                text.text = text.text .. v .. "("
                 buttons.applyLayout("numbers")
             end
         }
